@@ -94,18 +94,26 @@ def add_to_old_buff(stereo_width,frequencies,magnitude_left,magnitude_right):
     old_mag_left = append_max(old_mag_left, magnitude_left, max_old_vals)
     old_mag_right = append_max(old_mag_right, magnitude_right, max_old_vals)
 
+def apply_smoothing(vals):
+    vals = savgol_filter(vals, 100, 3, axis=0)
+    return vals
+
+
 def update_old_vals():
-    global old_mag_left, old_mag_right
+    global old_mag_left, old_mag_right, old_w, old_freq
     # decay old vals
     old_mag_left = decay * old_mag_left + 1e-10
     old_mag_right = decay * old_mag_right + 1e-10
 
     # update left old vals
-    sc_old_left.set_offsets(np.c_[-old_w, old_freq])
+    smooth_w = apply_smoothing(old_w)
+    #get_histogram(old_w, old_freq, old_mag_left)
+
+    sc_old_left.set_offsets(np.c_[-smooth_w, old_freq])
     sc_old_left.set_array(np.array(old_mag_left))
 
     # update right old vals
-    sc_old_right.set_offsets(np.c_[old_w, old_freq])
+    sc_old_right.set_offsets(np.c_[smooth_w, old_freq])
     sc_old_right.set_array(np.array(old_mag_right))
 
     print(f"old mag l: {old_mag_left}")
